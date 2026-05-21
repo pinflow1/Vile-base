@@ -1,0 +1,55 @@
+name: Vile Video Pipeline
+
+on:
+  schedule:
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '20'
+  TIMEOUT_MINUTES: 60
+
+jobs:
+  generate-video:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60   # Use direct number, not expression
+    
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      - name: Setup FFmpeg
+        uses: FedericoCarboni/setup-ffmpeg@v3
+        continue-on-error: false
+      - run: npm ci
+      - run: mkdir -p output
+
+      - name: Generate script with Groq API
+        run: node scripts/generate-script.js
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+
+      - name: Create voiceover with Edge-TTS
+        run: node scripts/generate-voiceover.js --input output/script.txt --output output/voiceover.mp3
+
+      - name: Render video (local, using Remotion)
+        run: node scripts/render-video.js
+
+      - name: Verify video exists
+        run: test -f output/final-video.mp4 || exit 1
+
+      - name: Upload to Supabase Storage
+        run: node scripts/upload-to-supabase.js --file output/final-video.mp4
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+
+      - name: Cleanup
+        if: always()
+        run: rm -rf output/*.mp3 output/*.txt
+
+      - name: Notify failure
+        if: failure()
+        run: echo "::error::Workflow failed"
