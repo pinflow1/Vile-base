@@ -15,18 +15,10 @@ async function main() {
   const script = fs.readFileSync(inputFile, 'utf-8');
   const voice = 'en-US-JennyNeural';
   const escaped = script.replace(/"/g, '\\"').replace(/\n/g, ' ');
-  // Correctly using 'msedge-tts' as the executable name
   const cmd = `npx msedge-tts --voice "${voice}" --text "${escaped}" --write-media ${outputFile}`;
 
-  console.log(`Running command: ${cmd}`);
-
-  try {
-    await execPromise(cmd);
-    console.log(`✅ Voiceover saved to ${outputFile}`);
-  } catch (error) {
-    console.error(`Error: ${error.message}`);
-    process.exit(1);
-  }
+  await execPromise(cmd);
+  console.log(`✅ Voiceover saved to ${outputFile}`);
 }
 
 main().catch(err => { console.error(err); process.exit(1); });
