@@ -5,7 +5,7 @@
     "@remotion/bundler": "^4.0.0",
     "@remotion/renderer": "^4.0.0",
     "@supabase/supabase-js": "^2.39.0",
-    "edge-tts": "^1.5.1",
+    "msedge-tts": "^2.0.5",
     "groq-sdk": "^0.3.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
