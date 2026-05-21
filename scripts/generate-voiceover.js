@@ -15,7 +15,8 @@ async function main() {
   const script = fs.readFileSync(inputFile, 'utf-8');
   const voice = 'en-US-JennyNeural';
   const escaped = script.replace(/"/g, '\\"').replace(/\n/g, ' ');
-  const cmd = `edge-tts --voice "${voice}" --text "${escaped}" --write-media ${outputFile}`;
+  // Use npx with @latest to always get the newest version
+  const cmd = `npx edge-tts@latest --voice "${voice}" --text "${escaped}" --write-media ${outputFile}`;
 
   await execPromise(cmd);
   console.log(`✅ Voiceover saved to ${outputFile}`);
