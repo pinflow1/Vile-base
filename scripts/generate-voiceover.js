@@ -15,11 +15,18 @@ async function main() {
   const script = fs.readFileSync(inputFile, 'utf-8');
   const voice = 'en-US-JennyNeural';
   const escaped = script.replace(/"/g, '\\"').replace(/\n/g, ' ');
-  // Use npx with @latest to always get the newest version
-  const cmd = `npx edge-tts@latest --voice "${voice}" --text "${escaped}" --write-media ${outputFile}`;
+  // Correctly using 'msedge-tts' as the executable name
+  const cmd = `npx msedge-tts --voice "${voice}" --text "${escaped}" --write-media ${outputFile}`;
 
-  await execPromise(cmd);
-  console.log(`✅ Voiceover saved to ${outputFile}`);
+  console.log(`Running command: ${cmd}`);
+
+  try {
+    await execPromise(cmd);
+    console.log(`✅ Voiceover saved to ${outputFile}`);
+  } catch (error) {
+    console.error(`Error: ${error.message}`);
+    process.exit(1);
+  }
 }
 
 main().catch(err => { console.error(err); process.exit(1); });
