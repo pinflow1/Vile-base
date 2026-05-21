@@ -1,0 +1,94 @@
+name: Vile Video Pipeline
+
+on:
+  schedule:
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '20'
+  TIMEOUT_MINUTES: 120  # Increased from 90 (Vile's finding #2)
+
+jobs:
+  generate-video:
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ fromJSON(env.TIMEOUT_MINUTES) }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: Setup FFmpeg
+        uses: FedericoCarboni/setup-ffmpeg@v3
+        continue-on-error: false  # Explicit fail if missing
+        
+      - name: Install dependencies
+        run: npm ci
+        continue-on-error: false
+        
+      - name: Create output directory
+        run: mkdir -p output  # Fixes file system assumption (Vile #5)
+        
+      - name: Generate script with Groq API
+        id: script_gen
+        run: |
+          set -e  # Explicit error handling
+          node scripts/generate-script.js > output/script.txt || {
+            echo "❌ Script generation failed"
+            exit 1
+          }
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          
+      - name: Create voiceover with Edge-TTS
+        id: voice_gen
+        run: |
+          set -e
+          if [ ! -f output/script.txt ]; then
+            echo "❌ Script file missing"
+            exit 1
+          fi
+          node scripts/generate-voiceover.js --input output/script.txt --output output/voiceover.mp3
+          
+      - name: Render video on Vercel Sandbox
+        id: render
+        run: |
+          set -e
+          node scripts/render-with-vercel-sandbox.js
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          
+      - name: Verify video exists
+        run: |
+          if [ ! -f output/final-video.mp4 ]; then
+            echo "❌ Video not rendered"
+            exit 1
+          fi
+          
+      - name: Upload to Supabase Storage
+        id: upload
+        run: |
+          set -e
+          node scripts/upload-to-supabase.js --file output/final-video.mp4
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          
+      - name: Cleanup old files (optional)
+        if: always()
+        run: |
+          rm -rf output/*.mp3 output/*.txt
+          
+    # Explicit error reporting (Vile #1)
+    - name: Notify failure
+      if: failure()
+      run: |
+        echo "::error::Workflow failed at step ${{ github.job }}"
+        # Could add Slack/Discord webhook here
