@@ -1,7 +1,6 @@
 const { exec } = require('child_process');
 const util = require('util');
 const fs = require('fs');
-const path = require('path');
 
 const execPromise = util.promisify(exec);
 
@@ -16,7 +15,7 @@ async function main() {
   const script = fs.readFileSync(inputFile, 'utf-8');
   const voice = 'en-US-JennyNeural';
   const escaped = script.replace(/"/g, '\\"').replace(/\n/g, ' ');
-  const cmd = `npx edge-tts --voice "${voice}" --text "${escaped}" --write-media ${outputFile}`;
+  const cmd = `edge-tts --voice "${voice}" --text "${escaped}" --write-media ${outputFile}`;
 
   await execPromise(cmd);
   console.log(`✅ Voiceover saved to ${outputFile}`);
