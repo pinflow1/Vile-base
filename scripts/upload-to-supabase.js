@@ -17,7 +17,7 @@ async function main() {
   const fileName = `vile-video-${Date.now()}.mp4`;
 
   const { data, error } = await supabase.storage
-    .from('vile-videos')
+    .from('vile-videos')   // Make sure this bucket exists in Supabase
     .upload(fileName, fileBuffer, { contentType: 'video/mp4' });
 
   if (error) throw error;
