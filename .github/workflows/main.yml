@@ -12,7 +12,7 @@ env:
 jobs:
   generate-video:
     runs-on: ubuntu-latest
-    timeout-minutes: ${{ fromJSON(env.TIMEOUT_MINUTES) }}
+    timeout-minutes: 60   # Use direct number, not expression
     
     steps:
       - uses: actions/checkout@v4
