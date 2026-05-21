@@ -22,7 +22,7 @@ jobs:
       - name: Setup FFmpeg
         uses: FedericoCarboni/setup-ffmpeg@v3
         continue-on-error: false
-      - run: npm ci
+      - run: npm install
       - run: mkdir -p output
 
       - name: Generate script with Groq API
