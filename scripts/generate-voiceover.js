@@ -15,7 +15,8 @@ async function main() {
   const script = fs.readFileSync(inputFile, 'utf-8');
   const voice = 'en-US-JennyNeural';
   const escaped = script.replace(/"/g, '\\"').replace(/\n/g, ' ');
-  const cmd = `npx msedge-tts --voice "${voice}" --text "${escaped}" --write-media ${outputFile}`;
+  // Use direct path to locally installed msedge-tts
+  const cmd = `./node_modules/.bin/msedge-tts --voice "${voice}" --text "${escaped}" --write-media ${outputFile}`;
 
   await execPromise(cmd);
   console.log(`✅ Voiceover saved to ${outputFile}`);
