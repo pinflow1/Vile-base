@@ -10,6 +10,7 @@ import {
   staticFile,
   Easing,
 } from 'remotion';
+import { VileLogo } from './VileLogo';  // <-- added import
 
 type RiskLevel = 'Low' | 'Medium' | 'High';
 
@@ -102,18 +103,10 @@ export const VileComposition: React.FC<VileCompositionProps> = ({
         }}
       />
 
-      {/* Vile Logo (top left) */}
-      <Img
-        src={staticFile('assets/vile-logo.png')}
-        style={{
-          position: 'absolute',
-          top: 40,
-          left: 20,
-          width: 90,
-          height: 'auto',
-          filter: `drop-shadow(0 0 8px #00E5FF)`,
-        }}
-      />
+      {/* Vile Logo (top left) - now using animated SVG component */}
+      <div style={{ position: 'absolute', top: 40, left: 20 }}>
+        <VileLogo size={90} />
+      </div>
 
       {/* Risk Meter Card (appears after 1 second) */}
       <Sequence from={30}>
