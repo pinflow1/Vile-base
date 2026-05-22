@@ -4,28 +4,31 @@ const fs = require('fs');
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 async function main() {
-  // Read the existing script
-  const scriptText = fs.readFileSync('output/script.txt', 'utf8');
+  console.log('[1/3] Generating script and scenes...');
 
-  const prompt = `You are a video director. Convert this script into a scene-by-scene JSON array for a vertical video (1080x1920).
+  const prompt = `You are a video director. Generate both a raw script AND a scene-by-scene JSON for a vertical video about "Vile" – an AI code safety engine.
 
-Script: "${scriptText}"
+First, write a short, punchy script (under 400 chars) for a 15-second TikTok/Reels video. Use dark, developer-focused language. Hook urgent, problem painful, solution powerful.
 
-Each scene must have:
+Then, convert that exact script into a scene JSON array with these fields:
 - type: "hook" (1.5s), "problem" (2.5s), "solution" (2s), "demo" (2.5s), "cta" (2s)
-- keyword: 1-3 word bold phrase (extract from the script)
-- supporting: optional subtext (extract from the script)
+- keyword: 1-3 word bold phrase
+- supporting: optional subtext
 
-Output ONLY valid JSON. Example:
+Output format:
+---SCRIPT---
+[the raw script text]
+---JSON---
+[valid JSON array only, no extra text]
+
+Example JSON:
 [
   {"type":"hook","keyword":"WHAT IF","supporting":"you never shipped a bug?"},
   {"type":"problem","keyword":"SILENT CRASHES","supporting":"cost you users"},
   {"type":"solution","keyword":"VILE","supporting":"AI code safety engine"},
   {"type":"demo","keyword":"ANALYZES DIFFS","supporting":"predicts failures before deploy"},
   {"type":"cta","keyword":"TRY VILE","supporting":"vile-web.vercel.app"}
-]
-
-Use dark, developer-focused language. Keep the hook urgent, the problem painful, the solution powerful.`;
+]`;
 
   const completion = await groq.chat.completions.create({
     model: "llama-3.3-70b-versatile",
@@ -33,13 +36,24 @@ Use dark, developer-focused language. Keep the hook urgent, the problem painful,
     temperature: 0.6,
   });
 
-  const jsonText = completion.choices[0].message.content;
-  const jsonMatch = jsonText.match(/\[[\s\S]*\]/);
-  if (!jsonMatch) throw new Error('No JSON found');
-  const scenes = JSON.parse(jsonMatch[0]);
+  const response = completion.choices[0].message.content;
+  
+  // Extract script (between ---SCRIPT--- and ---JSON---)
+  const scriptMatch = response.match(/---SCRIPT---\n([\s\S]*?)\n---JSON---/);
+  const jsonMatch = response.match(/---JSON---\n([\s\S]*?)$/);
+  
+  if (!scriptMatch || !jsonMatch) {
+    throw new Error('Failed to parse response from Groq');
+  }
+  
+  const script = scriptMatch[1].trim();
+  const scenes = JSON.parse(jsonMatch[1].trim());
+  
+  fs.writeFileSync('output/script.txt', script);
   fs.writeFileSync('output/scenes.json', JSON.stringify(scenes, null, 2));
-  console.log('✅ scenes.json saved');
-  console.log('Scenes:', scenes.map(s => `${s.type}: ${s.keyword}`).join(', '));
+  
+  console.log(`✅ Script saved (${script.length} chars)`);
+  console.log(`✅ Scenes saved: ${scenes.map(s => s.type).join(' → ')}`);
 }
 
 main().catch(err => { console.error(err); process.exit(1); });
