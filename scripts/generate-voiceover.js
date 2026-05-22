@@ -16,9 +16,10 @@ async function main() {
 
   console.log(`🎙️ Generating voiceover for: "${scriptText.substring(0, 60)}..."`);
 
-  // Create TTS instance and synthesize
-  const tts = new EdgeTTS(scriptText, voiceName);
-  const result = await tts.synthesize();
+  // Correct usage: create instance, set voice, then synthesize
+  const tts = new EdgeTTS();
+  await tts.setVoice(voiceName);   // ✅ set voice separately
+  const result = await tts.synthesize(scriptText);   // ✅ pass text to synthesize
 
   // Write audio to file
   const audioBuffer = Buffer.from(await result.audio.arrayBuffer());
