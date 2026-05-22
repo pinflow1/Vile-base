@@ -14,10 +14,7 @@ export const RemotionRoot: React.FC = () => {
         height={1920}
         defaultProps={{
           scriptText: 'Vile analyzes your diffs and predicts runtime failures.',
-          audioUrl: '',   // empty – will be overridden by inputProps
-          uiScreenshotUrls: [],
-          riskScore: 78,
-          riskLevel: 'High',
+          audioUrl: '',
         }}
       />
     </>
