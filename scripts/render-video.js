@@ -1,6 +1,5 @@
 const { bundle } = require('@remotion/bundler');
 const { renderMedia, getCompositions } = require('@remotion/renderer');
-const { createClient } = require('@supabase/supabase-js');
 const path = require('path');
 const fs = require('fs');
 
@@ -52,27 +51,32 @@ async function main() {
   });
   console.log('✅ Video rendered to output/final-video.mp4');
 
-  // --- Upload to Supabase ---
+  // --- Upload to Supabase using fetch (no WebSocket) ---
   console.log('[8/8] Uploading to Supabase...');
   const supabaseUrl = process.env.SUPABASE_URL;
   const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
   if (!supabaseUrl || !supabaseKey) {
     throw new Error('Missing Supabase credentials');
   }
-  const supabase = createClient(supabaseUrl, supabaseKey);
   const fileBuffer = fs.readFileSync(outputLocation);
   const fileName = `vile-video-${Date.now()}.mp4`;
-
-  const { data, error } = await supabase.storage
-    .from('vile-videos')
-    .upload(fileName, fileBuffer, { contentType: 'video/mp4' });
-
-  if (error) throw error;
-
-  const { data: urlData } = supabase.storage.from('vile-videos').getPublicUrl(fileName);
-  console.log(`✅ Video uploaded. Public URL: ${urlData.publicUrl}`);
-  // Write URL to a file for cleanup/debug
-  fs.writeFileSync('output/video-url.txt', urlData.publicUrl);
+  const uploadUrl = `${supabaseUrl}/storage/v1/object/vile-videos/${fileName}`;
+  console.log(`Uploading to ${uploadUrl}`);
+  const response = await fetch(uploadUrl, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${supabaseKey}`,
+      'Content-Type': 'video/mp4',
+    },
+    body: fileBuffer,
+  });
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Upload failed: ${response.status} ${response.statusText} - ${errorText}`);
+  }
+  const publicUrl = `${supabaseUrl}/storage/v1/object/public/vile-videos/${fileName}`;
+  console.log(`✅ Video uploaded. Public URL: ${publicUrl}`);
+  fs.writeFileSync('output/video-url.txt', publicUrl);
 }
 
 const TIMEOUT_MS = 30 * 60 * 1000;
