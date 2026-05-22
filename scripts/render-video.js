@@ -10,10 +10,14 @@ async function main() {
   const outputLocation = 'output/final-video.mp4';
 
   console.log('[2/7] Checking voiceover file...');
-  if (!fs.existsSync('output/voiceover.mp3')) {
+  const audioPath = path.resolve('output/voiceover.mp3');
+  if (!fs.existsSync(audioPath)) {
     throw new Error('Voiceover file missing');
   }
-  console.log('[2/7] Voiceover file found.');
+  console.log('[2/7] Voiceover file found at:', audioPath);
+  // Convert to file:// URL for Remotion
+  const audioUrl = `file://${audioPath}`;
+  console.log('[2/7] Audio URL:', audioUrl);
 
   console.log('[3/7] Reading script.txt...');
   const scriptText = fs.readFileSync('output/script.txt', 'utf-8');
@@ -37,11 +41,11 @@ async function main() {
   console.log(`[6/7] Found compositions: ${compositions.map(c => c.id).join(', ')}`);
   const composition = compositions.find(c => c.id === compositionId);
   if (!composition) {
-    throw new Error(`Composition "${compositionId}" not found in bundle. Available: ${compositions.map(c => c.id).join(', ')}`);
+    throw new Error(`Composition "${compositionId}" not found in bundle.`);
   }
   console.log(`[6/7] Composition "${compositionId}" found. Duration: ${composition.durationInFrames} frames, FPS: ${composition.fps}`);
 
-  console.log('[7/7] Rendering video (this may take several minutes)...');
+  console.log('[7/7] Rendering video...');
   await renderMedia({
     codec: 'h264',
     composition,
@@ -49,8 +53,10 @@ async function main() {
     outputLocation,
     inputProps: {
       scriptText,
-      audioUrl: path.resolve('output/voiceover.mp3'),
+      audioUrl,                 // now a file:// URL
       uiScreenshotUrls: [],
+      riskScore: 78,
+      riskLevel: 'High',
     },
     scale: 0.5,
     jpegQuality: 80,
