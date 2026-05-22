@@ -4,26 +4,36 @@ const path = require('path');
 const fs = require('fs');
 
 async function main() {
+  console.log('[1/6] Starting render script...');
   const compositionId = 'VileComposition';
   const entry = './src/index.ts';
   const outputLocation = 'output/final-video.mp4';
 
+  console.log('[2/6] Checking voiceover file...');
   if (!fs.existsSync('output/voiceover.mp3')) {
     throw new Error('Voiceover file missing');
   }
-  const scriptText = fs.readFileSync('output/script.txt', 'utf-8');
+  console.log('[2/6] Voiceover file found.');
 
-  // Check if src folder exists, if not create a dummy composition (fail gracefully)
+  console.log('[3/6] Reading script.txt...');
+  const scriptText = fs.readFileSync('output/script.txt', 'utf-8');
+  console.log(`[3/6] Script length: ${scriptText.length}`);
+
+  console.log('[4/6] Checking src folder...');
   if (!fs.existsSync('./src')) {
     console.error('❌ src/ folder not found. Please add Remotion project files.');
     process.exit(1);
   }
+  console.log('[4/6] src folder exists.');
 
+  console.log('[5/6] Starting Webpack bundle (this may take 1-2 minutes)...');
   const bundleLocation = await bundle({
     entryPoint: path.resolve(entry),
     webpackOverride: (config) => config,
   });
+  console.log(`[5/6] Bundle complete: ${bundleLocation}`);
 
+  console.log('[6/6] Rendering video...');
   await renderMedia({
     codec: 'h264',
     composition: compositionId,
@@ -39,4 +49,14 @@ async function main() {
   console.log('✅ Video rendered to output/final-video.mp4');
 }
 
-main().catch(err => { console.error(err); process.exit(1); });
+// Timeout wrapper to avoid hanging forever
+const TIMEOUT_MS = 10 * 60 * 1000; // 10 minutes
+const timeoutPromise = new Promise((_, reject) =>
+  setTimeout(() => reject(new Error('Render timed out after 10 minutes')), TIMEOUT_MS)
+);
+
+Promise.race([main(), timeoutPromise])
+  .catch(err => {
+    console.error('Render failed:', err);
+    process.exit(1);
+  });
