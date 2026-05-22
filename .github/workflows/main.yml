@@ -35,6 +35,13 @@ jobs:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
         continue-on-error: false
       
+      - name: Debug script content
+        run: |
+          echo "=== Script file content ==="
+          cat output/script.txt
+          echo "=== End ==="
+          echo "File size: $(wc -c < output/script.txt) bytes"
+      
       - name: Create voiceover with Edge-TTS
         run: node scripts/generate-voiceover.js --input output/script.txt --output output/voiceover.mp3
         continue-on-error: false
