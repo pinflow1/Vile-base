@@ -11,9 +11,7 @@ export const RemotionRoot: React.FC = () => {
       fps={30}
       width={1080}
       height={1920}
-      defaultProps={{
-        scriptText: 'Vile analyzes your diffs and predicts runtime failures.',
-      }}
+      defaultProps={{ scriptText: 'Vile analyzes your diffs. Predicts runtime failures. Try Vile today.' }}
     />
   );
 };
