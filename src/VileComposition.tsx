@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { AbsoluteFill, Audio, useCurrentFrame, interpolate, staticFile } from 'remotion';
+import { AbsoluteFill, Audio, useCurrentFrame, interpolate } from 'remotion';
 import { VileLogo } from './VileLogo';
 
 type VileCompositionProps = {
@@ -10,7 +9,7 @@ type VileCompositionProps = {
 
 export const VileComposition: React.FC<VileCompositionProps> = ({ scriptText, audioUrl }) => {
   const frame = useCurrentFrame();
-  const opacity = interpolate(frame % 60, [0, 15, 45, 60], [0, 1, 1, 0]);
+  const opacity = interpolate(frame % 90, [0, 15, 75, 90], [0, 1, 1, 0]);
 
   return (
     <AbsoluteFill style={{ backgroundColor: '#0A0A0F', justifyContent: 'center', alignItems: 'center' }}>
