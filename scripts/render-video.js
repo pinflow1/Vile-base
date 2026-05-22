@@ -4,46 +4,39 @@ const path = require('path');
 const fs = require('fs');
 
 async function main() {
-  console.log('[1/7] Starting render script...');
+  console.log('[1/6] Starting render script...');
   const compositionId = 'VileComposition';
   const entry = './src/index.ts';
   const outputLocation = 'output/final-video.mp4';
 
-  console.log('[2/7] Checking voiceover file...');
-  const audioPath = path.resolve('output/voiceover.mp3');
-  if (!fs.existsSync(audioPath)) {
+  console.log('[2/6] Checking voiceover file...');
+  if (!fs.existsSync('output/voiceover.mp3')) {
     throw new Error('Voiceover file missing');
   }
-  console.log('[2/7] Voiceover file found at:', audioPath);
-  // Convert to file:// URL for Remotion
-  const audioUrl = `file://${audioPath}`;
-  console.log('[2/7] Audio URL:', audioUrl);
 
-  console.log('[3/7] Reading script.txt...');
+  console.log('[3/6] Reading script.txt...');
   const scriptText = fs.readFileSync('output/script.txt', 'utf-8');
-  console.log(`[3/7] Script length: ${scriptText.length}`);
+  console.log(`[3/6] Script length: ${scriptText.length}`);
 
-  console.log('[4/7] Checking src folder...');
+  console.log('[4/6] Checking src folder...');
   if (!fs.existsSync('./src')) {
     throw new Error('src/ folder not found.');
   }
-  console.log('[4/7] src folder exists.');
 
-  console.log('[5/7] Starting Webpack bundle...');
+  console.log('[5/6] Starting Webpack bundle...');
   const bundleLocation = await bundle({
     entryPoint: path.resolve(entry),
     webpackOverride: (config) => config,
   });
-  console.log(`[5/7] Bundle complete: ${bundleLocation}`);
+  console.log(`[5/6] Bundle complete: ${bundleLocation}`);
 
-  console.log('[6/7] Fetching available compositions...');
+  console.log('[6/6] Fetching compositions...');
   const compositions = await getCompositions(bundleLocation);
-  console.log(`[6/7] Found compositions: ${compositions.map(c => c.id).join(', ')}`);
   const composition = compositions.find(c => c.id === compositionId);
   if (!composition) {
-    throw new Error(`Composition "${compositionId}" not found in bundle.`);
+    throw new Error(`Composition "${compositionId}" not found.`);
   }
-  console.log(`[6/7] Composition "${compositionId}" found. Duration: ${composition.durationInFrames} frames, FPS: ${composition.fps}`);
+  console.log(`[6/6] Found composition. Duration: ${composition.durationInFrames} frames`);
 
   console.log('[7/7] Rendering video...');
   await renderMedia({
@@ -51,13 +44,7 @@ async function main() {
     composition,
     serveUrl: bundleLocation,
     outputLocation,
-    inputProps: {
-      scriptText,
-      audioUrl,                 // now a file:// URL
-      uiScreenshotUrls: [],
-      riskScore: 78,
-      riskLevel: 'High',
-    },
+    inputProps: { scriptText },   // audio is now staticFile('voiceover.mp3')
     scale: 0.5,
     jpegQuality: 80,
     concurrency: 2,
