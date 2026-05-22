@@ -1,51 +1,28 @@
 import React from 'react';
-import { AbsoluteFill, Audio, staticFile, Sequence, useCurrentFrame, interpolate, Easing, Img, spring } from 'remotion';
+import { AbsoluteFill, Audio, staticFile, Sequence, useCurrentFrame, interpolate, Easing } from 'remotion';
+import { VileLogo } from './VileLogo';
 
-// ============================================================
-// 1. Motion Curves (Premium Easing)
-// ============================================================
+// Premium easing curves
 const easeOutExpo = Easing.bezier(0.16, 1, 0.3, 1);
 const easeOutBack = Easing.bezier(0.34, 1.56, 0.64, 1);
 const easeInOutCubic = Easing.bezier(0.65, 0, 0.35, 1);
 const easeOutQuint = Easing.bezier(0.23, 1, 0.32, 1);
 
-// ============================================================
-// 2. Scene Types with Specific Animations & Durations
-// ============================================================
 type SceneType = 'hook' | 'problem' | 'solution' | 'demo' | 'cta';
-
 interface Scene {
   type: SceneType;
-  label?: string;
   keyword: string;
   supporting?: string;
-  duration: number; // seconds
+  duration: number;
 }
 
-// ============================================================
-// 3. Scene Definitions (generated from script or hardcoded)
-// ============================================================
-// This would come from your script generation, but here's an example:
-const scenes: Scene[] = [
-  { type: 'hook', keyword: 'WHAT IF...', supporting: 'you never shipped a bug?', duration: 1.5 },
-  { type: 'problem', keyword: 'SILENT CRASHES', supporting: 'cost you users and trust', duration: 2.5 },
-  { type: 'solution', keyword: 'VILE', supporting: 'AI code safety engine', duration: 2 },
-  { type: 'demo', keyword: 'ANALYZES DIFFS', supporting: 'predicts failures before deploy', duration: 2.5 },
-  { type: 'cta', keyword: 'TRY VILE', supporting: 'vile-web.vercel.app', duration: 2 },
-];
-
-// ============================================================
-// 4. Scene Renderer with Premium Motion
-// ============================================================
+// Scene components
 const HookScene: React.FC<{ keyword: string; supporting: string; durationFrames: number }> = ({ keyword, supporting, durationFrames }) => {
   const frame = useCurrentFrame();
   const progress = interpolate(frame, [0, durationFrames], [0, 1], { easing: easeOutExpo });
-  
-  // Aggressive zoom + blur
   const scale = interpolate(progress, [0, 0.6, 1], [0.3, 1.2, 1], { easing: easeOutBack });
   const blur = interpolate(progress, [0, 0.5, 1], [20, 5, 0]);
   const opacity = interpolate(progress, [0, 0.2, 1], [0, 1, 1]);
-  
   return (
     <AbsoluteFill style={{ justifyContent: 'center', alignItems: 'center', backgroundColor: '#0A0A0F' }}>
       <div style={{ transform: `scale(${scale})`, filter: `blur(${blur}px)`, opacity, textAlign: 'center' }}>
@@ -60,13 +37,10 @@ const HookScene: React.FC<{ keyword: string; supporting: string; durationFrames:
 const ProblemScene: React.FC<{ keyword: string; supporting: string; durationFrames: number }> = ({ keyword, supporting, durationFrames }) => {
   const frame = useCurrentFrame();
   const progress = interpolate(frame, [0, durationFrames], [0, 1], { easing: easeInOutCubic });
-  
-  // Glitch + shake
   const glitchIntensity = Math.sin(frame * 0.5) * 8;
   const shakeX = Math.sin(frame * 15) * glitchIntensity;
   const redGlow = interpolate(Math.sin(frame * 0.3), [-1, 1], [0, 0.4]);
   const opacity = interpolate(progress, [0, 0.1, 1], [0, 1, 1]);
-  
   return (
     <AbsoluteFill style={{ justifyContent: 'center', alignItems: 'center', backgroundColor: '#0A0A0F' }}>
       <div style={{ transform: `translateX(${shakeX}px)`, opacity, textAlign: 'center' }}>
@@ -81,12 +55,9 @@ const ProblemScene: React.FC<{ keyword: string; supporting: string; durationFram
 const SolutionScene: React.FC<{ keyword: string; supporting: string; durationFrames: number }> = ({ keyword, supporting, durationFrames }) => {
   const frame = useCurrentFrame();
   const progress = interpolate(frame, [0, durationFrames], [0, 1], { easing: easeOutQuint });
-  
-  // Smooth float + fade
   const y = interpolate(progress, [0, 1], [30, 0], { easing: easeOutExpo });
   const opacity = interpolate(progress, [0, 0.1, 1], [0, 1, 1]);
   const scale = interpolate(progress, [0, 0.5, 1], [0.95, 1.02, 1]);
-  
   return (
     <AbsoluteFill style={{ justifyContent: 'center', alignItems: 'center', backgroundColor: '#0A0A0F' }}>
       <div style={{ transform: `translateY(${y}px) scale(${scale})`, opacity, textAlign: 'center' }}>
@@ -100,12 +71,8 @@ const SolutionScene: React.FC<{ keyword: string; supporting: string; durationFra
 
 const Demoscene: React.FC<{ keyword: string; supporting: string; durationFrames: number }> = ({ keyword, supporting, durationFrames }) => {
   const frame = useCurrentFrame();
-  const progress = interpolate(frame, [0, durationFrames], [0, 1], { easing: easeOutExpo });
-  
-  // Kinetic typography – each letter pops
   const letters = keyword.split('');
   const words = supporting.split(' ');
-  
   return (
     <AbsoluteFill style={{ justifyContent: 'center', alignItems: 'center', backgroundColor: '#0A0A0F' }}>
       <div style={{ textAlign: 'center' }}>
@@ -140,12 +107,9 @@ const Demoscene: React.FC<{ keyword: string; supporting: string; durationFrames:
 const CTAScene: React.FC<{ keyword: string; supporting: string; durationFrames: number }> = ({ keyword, supporting, durationFrames }) => {
   const frame = useCurrentFrame();
   const progress = interpolate(frame, [0, durationFrames], [0, 1], { easing: easeOutExpo });
-  
-  // Cinematic scale + glow pulse
   const scale = interpolate(progress, [0, 0.7, 1], [0.8, 1.05, 1], { easing: easeOutBack });
   const glowPulse = interpolate(Math.sin(frame * 0.05), [-1, 1], [0.5, 1.5]);
   const opacity = interpolate(progress, [0, 0.1, 1], [0, 1, 1]);
-  
   return (
     <AbsoluteFill style={{ justifyContent: 'center', alignItems: 'center', backgroundColor: '#0A0A0F' }}>
       <div style={{ transform: `scale(${scale})`, opacity, textAlign: 'center' }}>
@@ -156,19 +120,21 @@ const CTAScene: React.FC<{ keyword: string; supporting: string; durationFrames: 
   );
 };
 
-// ============================================================
-// 5. Main Composition
-// ============================================================
-export const VileComposition: React.FC<{ scriptText?: string }> = ({ scriptText }) => {
-  // You can either use the hardcoded scenes or parse from scriptText
-  // For now, using hardcoded scenes for cinematic quality
-  
+// Main component
+export const VileComposition: React.FC<{ scenes?: Scene[] }> = ({ scenes = [] }) => {
+  // Calculate total duration for the composition (all scenes sum)
+  let totalFrames = 0;
+  for (const scene of scenes) {
+    totalFrames += Math.floor(scene.duration * 30);
+  }
+
+  // Build sequences
   let currentFrame = 0;
-  const sceneComponents = scenes.map((scene, idx) => {
+  const children = scenes.map((scene, idx) => {
     const durationFrames = Math.floor(scene.duration * 30);
     const startFrame = currentFrame;
     currentFrame += durationFrames;
-    
+
     let Component;
     switch (scene.type) {
       case 'hook': Component = HookScene; break;
@@ -178,24 +144,21 @@ export const VileComposition: React.FC<{ scriptText?: string }> = ({ scriptText 
       case 'cta': Component = CTAScene; break;
       default: Component = HookScene;
     }
-    
+
     return (
       <Sequence key={idx} from={startFrame} durationInFrames={durationFrames}>
         <Component keyword={scene.keyword} supporting={scene.supporting || ''} durationFrames={durationFrames} />
       </Sequence>
     );
   });
-  
+
   return (
     <AbsoluteFill style={{ backgroundColor: '#0A0A0F' }}>
       <Audio src={staticFile('voiceover.mp3')} />
-      {/* Vile Logo (subtle, bottom right) */}
-      <div style={{ position: 'absolute', bottom: 20, right: 20, zIndex: 20, opacity: 0.3 }}>
-        <Img src={staticFile('vile-logo.png')} style={{ width: 50, height: 50 }} />
+      <div style={{ position: 'absolute', bottom: 20, right: 20, zIndex: 20, opacity: 0.4 }}>
+        <VileLogo size={50} />
       </div>
-      {/* Subtle grain overlay */}
-      <div style={{ position: 'absolute', inset: 0, background: 'url(/grain.png)', opacity: 0.05, pointerEvents: 'none', mixBlendMode: 'overlay' }} />
-      {sceneComponents}
+      {children}
     </AbsoluteFill>
   );
 };
