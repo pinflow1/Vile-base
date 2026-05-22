@@ -9,12 +9,20 @@ async function main() {
     ? process.argv[process.argv.indexOf('--output') + 1]
     : 'output/voiceover.mp3';
 
-  const scriptText = fs.readFileSync(inputFile, 'utf-8');
+  // Read script as UTF-8 string
+  let scriptText = fs.readFileSync(inputFile, 'utf8');
+  
+  // Trim and validate
+  scriptText = scriptText.trim();
+  if (!scriptText || scriptText.length === 0) {
+    console.warn('⚠️ Script file is empty. Using default fallback text.');
+    scriptText = "Vile analyzes your code diffs and predicts runtime failures before you deploy. Catch bugs early. Ship with confidence. Try Vile today.";
+  }
+
+  console.log(`📄 Script type: ${typeof scriptText}, length: ${scriptText.length}`);
+  console.log(`🎙️ Generating voiceover for: "${scriptText.substring(0, 80)}..."`);
+
   const voiceName = 'en-US-JennyNeural';
-
-  console.log(`🎙️ Generating voiceover for: "${scriptText.substring(0, 60)}..."`);
-
-  // Correct API: create instance, call synthesize(text, voice)
   const tts = new EdgeTTS();
   const result = await tts.synthesize(scriptText, voiceName);
 
