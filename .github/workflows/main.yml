@@ -54,7 +54,7 @@ jobs:
       
       - name: Render video (local, using Remotion)
         run: node scripts/render-video.js
-        timeout-minutes: 15          # ⏱️ prevents hanging forever
+        timeout-minutes: 30          # ⏱️ extended from 15 minutes
         continue-on-error: false
       
       - name: Verify video exists
