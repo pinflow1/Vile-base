@@ -22,11 +22,7 @@ jobs:
         run: npm install --no-audit --no-fund
       - name: Create output directory
         run: mkdir -p output
-      - name: Generate script with Groq API
-        run: node scripts/generate-script.js
-        env:
-          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-      - name: Generate scenes from script
+      - name: Generate script and scenes
         run: node scripts/generate-scenes.js
         env:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
