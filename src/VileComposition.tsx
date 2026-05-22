@@ -1,6 +1,5 @@
 import React from 'react';
 import { AbsoluteFill, Audio, useCurrentFrame, interpolate } from 'remotion';
-import { VileLogo } from './VileLogo';
 
 type VileCompositionProps = {
   scriptText: string;
@@ -14,9 +13,6 @@ export const VileComposition: React.FC<VileCompositionProps> = ({ scriptText, au
   return (
     <AbsoluteFill style={{ backgroundColor: '#0A0A0F', justifyContent: 'center', alignItems: 'center' }}>
       <Audio src={audioUrl} />
-      <div style={{ position: 'absolute', top: 40, left: 20 }}>
-        <VileLogo size={90} />
-      </div>
       <div style={{
         color: 'white',
         fontSize: 48,
