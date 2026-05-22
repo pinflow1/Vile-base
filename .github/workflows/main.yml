@@ -58,28 +58,16 @@ jobs:
           echo "=== public/ folder contents ==="
           ls -la public/ || echo "public/ folder not found"
       
-      - name: Render video (local, using Remotion)
+      - name: Render video and upload to Supabase
         run: node scripts/render-video.js
         timeout-minutes: 30
-        continue-on-error: false
-      
-      - name: Force file system sync
-        run: ls -la output/
-      
-      - name: Verify video exists
-        run: |
-          if [ ! -f output/final-video.mp4 ]; then
-            echo "::error::Video file not found after rendering"
-            exit 1
-          fi
-      
-      - name: Upload to Supabase Storage
-        id: upload
-        run: node scripts/upload-to-supabase.js --file output/final-video.mp4
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
         continue-on-error: false
+      
+      - name: Force file system sync
+        run: ls -la output/
       
       - name: Cleanup all files (including video)
         if: always()
