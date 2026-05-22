@@ -1,18 +1,21 @@
 import React from 'react';
-import { AbsoluteFill, Audio, useCurrentFrame, interpolate } from 'remotion';
+import { AbsoluteFill, Audio, staticFile, useCurrentFrame, interpolate } from 'remotion';
+import { VileLogo } from './VileLogo';
 
 type VileCompositionProps = {
   scriptText: string;
-  audioUrl: string;
 };
 
-export const VileComposition: React.FC<VileCompositionProps> = ({ scriptText, audioUrl }) => {
+export const VileComposition: React.FC<VileCompositionProps> = ({ scriptText }) => {
   const frame = useCurrentFrame();
   const opacity = interpolate(frame % 90, [0, 15, 75, 90], [0, 1, 1, 0]);
 
   return (
     <AbsoluteFill style={{ backgroundColor: '#0A0A0F', justifyContent: 'center', alignItems: 'center' }}>
-      <Audio src={audioUrl} />
+      <Audio src={staticFile('voiceover.mp3')} />
+      <div style={{ position: 'absolute', top: 40, left: 20 }}>
+        <VileLogo size={90} />
+      </div>
       <div style={{
         color: 'white',
         fontSize: 48,
