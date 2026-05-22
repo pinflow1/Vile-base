@@ -10,71 +10,42 @@ jobs:
     
     steps:
       - uses: actions/checkout@v4
-      
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      
       - name: Setup FFmpeg
         uses: AnimMouse/setup-ffmpeg@v1
-      
       - name: Create/overwrite package.json
         run: |
           echo '{"name":"vile-base","version":"1.0.0","dependencies":{"@remotion/bundler":"^4.0.0","@remotion/renderer":"^4.0.0","@supabase/supabase-js":"^2.39.0","groq-sdk":"^0.3.0","voipi":"latest","react":"^18.2.0","react-dom":"^18.2.0","remotion":"^4.0.0"},"devDependencies":{"@types/react":"^18.2.0","@types/node":"^20.0.0","typescript":"^5.0.0"}}' > package.json
-      
       - name: Install dependencies
         run: npm install --no-audit --no-fund
-        continue-on-error: false
-      
       - name: Create output directory
         run: mkdir -p output
-      
       - name: Generate script with Groq API
         run: node scripts/generate-script.js
         env:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-        continue-on-error: false
-      
       - name: Debug script content
         run: |
           echo "=== Script file content ==="
           cat output/script.txt
           echo "=== End ==="
-          echo "File size: $(wc -c < output/script.txt) bytes"
-      
       - name: Create voiceover with Edge-TTS
         run: node scripts/generate-voiceover.js --input output/script.txt --output output/voiceover.mp3
-        continue-on-error: false
-      
-      - name: Copy audio to public folder (for Remotion)
+      - name: Copy audio to public folder
         run: |
           mkdir -p public
           cp output/voiceover.mp3 public/voiceover.mp3
-      
-      - name: List src folder (pre-render debug)
-        run: |
-          echo "=== src/ folder contents ==="
-          ls -la src/ || echo "src/ folder not found"
-          echo "=== public/ folder contents ==="
-          ls -la public/ || echo "public/ folder not found"
-      
-      - name: Render video and upload to Supabase
+      - name: Render and upload video
         run: node scripts/render-video.js
         timeout-minutes: 30
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
-        continue-on-error: false
-      
-      - name: Force file system sync
-        run: ls -la output/
-      
-      - name: Cleanup all files (including video)
+      - name: Cleanup
         if: always()
-        run: |
-          rm -rf output/*.mp3 output/*.txt output/final-video.mp4 output/video-url.txt
-          echo "✅ Cleanup complete"
-      
+        run: rm -rf output/*.mp3 output/*.txt output/final-video.mp4 output/video-url.txt
       - name: Notify failure
         if: failure()
-        run: echo "::error::Workflow failed. Check logs above."
+        run: echo "::error::Workflow failed."
