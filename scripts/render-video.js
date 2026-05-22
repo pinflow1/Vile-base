@@ -14,9 +14,22 @@ async function main() {
     throw new Error('Voiceover file missing');
   }
 
-  console.log('[3/8] Reading script.txt...');
-  const scriptText = fs.readFileSync('output/script.txt', 'utf-8');
-  console.log(`[3/8] Script length: ${scriptText.length}`);
+  console.log('[3/8] Reading scenes.json...');
+  let scenes;
+  try {
+    const scenesRaw = fs.readFileSync('output/scenes.json', 'utf8');
+    scenes = JSON.parse(scenesRaw);
+    console.log(`[3/8] Loaded ${scenes.length} scenes`);
+  } catch (e) {
+    console.warn('[3/8] No scenes.json found, using fallback scenes');
+    scenes = [
+      { type: 'hook', keyword: 'WHAT IF', supporting: 'you never shipped a bug?', duration: 1.5 },
+      { type: 'problem', keyword: 'SILENT CRASHES', supporting: 'cost you users', duration: 2.5 },
+      { type: 'solution', keyword: 'VILE', supporting: 'AI code safety engine', duration: 2 },
+      { type: 'demo', keyword: 'ANALYZES DIFFS', supporting: 'predicts failures', duration: 2.5 },
+      { type: 'cta', keyword: 'TRY VILE', supporting: 'vile-web.vercel.app', duration: 2 },
+    ];
+  }
 
   console.log('[4/8] Checking src folder...');
   if (!fs.existsSync('./src')) {
@@ -44,14 +57,14 @@ async function main() {
     composition,
     serveUrl: bundleLocation,
     outputLocation,
-    inputProps: { scriptText },
+    inputProps: { scenes },
     scale: 0.5,
     jpegQuality: 80,
     concurrency: 2,
   });
   console.log('✅ Video rendered to output/final-video.mp4');
 
-  // --- Upload to Supabase using fetch (no WebSocket) ---
+  // --- Upload to Supabase ---
   console.log('[8/8] Uploading to Supabase...');
   const supabaseUrl = process.env.SUPABASE_URL;
   const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
