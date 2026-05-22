@@ -21,19 +21,19 @@ async function main() {
 
   console.log('[4/6] Checking src folder...');
   if (!fs.existsSync('./src')) {
-    console.error('❌ src/ folder not found. Please add Remotion project files.');
+    console.error('❌ src/ folder not found.');
     process.exit(1);
   }
   console.log('[4/6] src folder exists.');
 
-  console.log('[5/6] Starting Webpack bundle (this may take 1-2 minutes)...');
+  console.log('[5/6] Starting Webpack bundle...');
   const bundleLocation = await bundle({
     entryPoint: path.resolve(entry),
     webpackOverride: (config) => config,
   });
   console.log(`[5/6] Bundle complete: ${bundleLocation}`);
 
-  console.log('[6/6] Rendering video...');
+  console.log('[6/6] Rendering video (this may take several minutes)...');
   await renderMedia({
     codec: 'h264',
     composition: compositionId,
@@ -44,15 +44,19 @@ async function main() {
       audioUrl: path.resolve('output/voiceover.mp3'),
       uiScreenshotUrls: [],
     },
+    // Speed optimizations:
+    scale: 0.5,               // render at half resolution (540x960) – much faster, still fine for testing
+    jpegQuality: 80,          // lower quality for faster encoding
+    concurrency: 2,           // limit parallel threads (avoid runner overload)
   });
 
   console.log('✅ Video rendered to output/final-video.mp4');
 }
 
-// Timeout wrapper to avoid hanging forever
-const TIMEOUT_MS = 10 * 60 * 1000; // 10 minutes
+// 30-minute timeout
+const TIMEOUT_MS = 30 * 60 * 1000;
 const timeoutPromise = new Promise((_, reject) =>
-  setTimeout(() => reject(new Error('Render timed out after 10 minutes')), TIMEOUT_MS)
+  setTimeout(() => reject(new Error('Render timed out after 30 minutes')), TIMEOUT_MS)
 );
 
 Promise.race([main(), timeoutPromise])
