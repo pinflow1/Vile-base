@@ -1,5 +1,5 @@
 const fs = require('fs');
-const { EdgeTTS } = require('@edge-tts/universal');
+const { EdgeTTS } = require('edge-tts-universal');
 
 async function main() {
   // Parse command-line arguments
@@ -16,13 +16,15 @@ async function main() {
 
   console.log(`🎙️ Generating voiceover for: "${scriptText.substring(0, 60)}..."`);
 
-  // Correct usage: create instance, set voice, then synthesize
+  // Create TTS instance and set voice
   const tts = new EdgeTTS();
-  await tts.setVoice(voiceName);   // ✅ set voice separately
-  const result = await tts.synthesize(scriptText);   // ✅ pass text to synthesize
+  await tts.setVoice(voiceName);
+  
+  // Synthesize the text
+  const result = await tts.synthesize(scriptText);
 
-  // Write audio to file
-  const audioBuffer = Buffer.from(await result.audio.arrayBuffer());
+  // Write audio to file (result.audio is an ArrayBuffer)
+  const audioBuffer = Buffer.from(result.audio);
   fs.writeFileSync(outputFile, audioBuffer);
 
   console.log(`✅ Voiceover saved to ${outputFile}`);
