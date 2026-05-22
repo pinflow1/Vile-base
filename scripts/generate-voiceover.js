@@ -1,5 +1,5 @@
-const fs = require('fs');
 const { EdgeTTS } = require('voipi/edge-tts');
+const fs = require('fs');
 
 async function main() {
   const inputFile = process.argv.find(arg => arg === '--input')
@@ -9,26 +9,16 @@ async function main() {
     ? process.argv[process.argv.indexOf('--output') + 1]
     : 'output/voiceover.mp3';
 
-  let scriptText = fs.readFileSync(inputFile, 'utf8');
-  scriptText = scriptText.trim();
-
+  let scriptText = fs.readFileSync(inputFile, 'utf8').trim();
   if (!scriptText) {
-    console.warn('⚠️ Script empty, using fallback.');
-    scriptText = "Vile analyzes your diffs and predicts runtime failures. Try Vile today.";
+    scriptText = "Vile analyzes your diffs and predicts runtime failures.";
   }
-
-  console.log(`📄 Script length: ${scriptText.length}`);
-  console.log(`🎙️ Generating voiceover for: "${scriptText.substring(0, 60)}..."`);
 
   const tts = new EdgeTTS();
   const audioBuffer = await tts.save(scriptText, outputFile, {
     voice: 'en-US-JennyNeural'
   });
-
   console.log(`✅ Voiceover saved to ${outputFile}`);
 }
 
-main().catch(err => {
-  console.error('❌ Voiceover generation failed:', err);
-  process.exit(1);
-});
+main().catch(err => { console.error(err); process.exit(1); });
