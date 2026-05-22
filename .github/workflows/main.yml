@@ -6,7 +6,7 @@ on:
 jobs:
   generate-video:
     runs-on: ubuntu-latest
-    timeout-minutes: 120  # Increased based on Vile's finding #1
+    timeout-minutes: 120
     
     steps:
       - uses: actions/checkout@v4
@@ -14,7 +14,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
       
       - name: Setup FFmpeg
         uses: AnimMouse/setup-ffmpeg@v1
@@ -25,7 +24,7 @@ jobs:
       
       - name: Install dependencies
         run: npm install --no-audit --no-fund
-        continue-on-error: false  # Fail immediately if install fails
+        continue-on-error: false
       
       - name: Create output directory
         run: mkdir -p output
@@ -60,14 +59,11 @@ jobs:
         continue-on-error: false
       
       - name: Cleanup all files (including video)
-        if: always()  # Run even if previous steps fail
+        if: always()
         run: |
-          # Remove audio, text, and video after upload
           rm -rf output/*.mp3 output/*.txt output/final-video.mp4 output/video-url.txt
           echo "✅ Cleanup complete"
       
       - name: Notify failure
         if: failure()
-        run: |
-          echo "::error::Workflow failed. Check logs above."
-          # Optional: Add Slack/Discord webhook here
+        run: echo "::error::Workflow failed. Check logs above."
