@@ -6,48 +6,68 @@ on:
 jobs:
   generate-video:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 120  # Increased based on Vile's finding #1
     
     steps:
       - uses: actions/checkout@v4
+      
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: 'npm'
       
       - name: Setup FFmpeg
         uses: AnimMouse/setup-ffmpeg@v1
       
       - name: Create/overwrite package.json
         run: |
-          echo '{"name":"vile-base","version":"1.0.0","dependencies":{"@remotion/bundler":"^4.0.0","@remotion/renderer":"^4.0.0","@supabase/supabase-js":"^2.39.0","groq-sdk":"^0.3.0","@edge-tts/universal":"latest","react":"^18.2.0","react-dom":"^18.2.0","remotion":"^4.0.0"},"devDependencies":{"@types/react":"^18.2.0","@types/node":"^20.0.0","typescript":"^5.0.0"}}' > package.json
+          echo '{"name":"vile-base","version":"1.0.0","dependencies":{"@remotion/bundler":"^4.0.0","@remotion/renderer":"^4.0.0","@supabase/supabase-js":"^2.39.0","groq-sdk":"^0.3.0","edge-tts-universal":"^1.4.0","react":"^18.2.0","react-dom":"^18.2.0","remotion":"^4.0.0"},"devDependencies":{"@types/react":"^18.2.0","@types/node":"^20.0.0","typescript":"^5.0.0"}}' > package.json
       
-      - run: npm install --no-audit --no-fund
-      - run: mkdir -p output
-
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+        continue-on-error: false  # Fail immediately if install fails
+      
+      - name: Create output directory
+        run: mkdir -p output
+      
       - name: Generate script with Groq API
         run: node scripts/generate-script.js
         env:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-
+        continue-on-error: false
+      
       - name: Create voiceover with Edge-TTS
         run: node scripts/generate-voiceover.js --input output/script.txt --output output/voiceover.mp3
-
+        continue-on-error: false
+      
       - name: Render video (local, using Remotion)
         run: node scripts/render-video.js
-
+        continue-on-error: false
+      
       - name: Verify video exists
-        run: test -f output/final-video.mp4 || exit 1
-
+        run: |
+          if [ ! -f output/final-video.mp4 ]; then
+            echo "::error::Video file not found after rendering"
+            exit 1
+          fi
+      
       - name: Upload to Supabase Storage
+        id: upload
         run: node scripts/upload-to-supabase.js --file output/final-video.mp4
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
-
-      - name: Cleanup
-        if: always()
-        run: rm -rf output/*.mp3 output/*.txt
-
+        continue-on-error: false
+      
+      - name: Cleanup all files (including video)
+        if: always()  # Run even if previous steps fail
+        run: |
+          # Remove audio, text, and video after upload
+          rm -rf output/*.mp3 output/*.txt output/final-video.mp4 output/video-url.txt
+          echo "✅ Cleanup complete"
+      
       - name: Notify failure
         if: failure()
-        run: echo "::error::Workflow failed"
+        run: |
+          echo "::error::Workflow failed. Check logs above."
+          # Optional: Add Slack/Discord webhook here
