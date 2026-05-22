@@ -63,6 +63,9 @@ jobs:
         timeout-minutes: 30
         continue-on-error: false
       
+      - name: Force file system sync
+        run: ls -la output/
+      
       - name: Verify video exists
         run: |
           if [ ! -f output/final-video.mp4 ]; then
